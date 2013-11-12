@@ -57,7 +57,7 @@ infixr 5  <+>
 -- | Shorthand for a record with a single field. Lifts the field's
 -- value into the chosen functor automatically.
 (=:) :: Applicative f => sy ::: t -> t -> Rec '[sy ::: t] f
-_a =: b = pure b :& RNil
+_ =: b = pure b :& RNil
 
 -- | Shorthand for a record with a single field of an 'Applicative'
 -- type. This is useful for @Applicative@ or @Monad@ic intialization
@@ -65,7 +65,7 @@ _a =: b = pure b :& RNil
 --
 -- > dist $ myField <-: someIO <+> yourField <-: otherIO
 (<-:) :: Applicative f => sy ::: t -> f t -> Rec '[sy ::: t] f
-_a <-: b = b :& RNil
+_ <-: b = b :& RNil
 infixr 6 <-:
 
 -- | Append for type-level lists.
