@@ -33,6 +33,15 @@ install:
           $HOME/.cabal/packages/hackage.haskell.org/00-index.tar;
    fi
  - travis_retry cabal update -v
+ - |-
+   case "$GHCVER" in
+     7.10.3) curl -L https://www.stackage.org/lts-6.27/cabal.config > cabal.config
+             sed 's/[[:space:]]*vinyl[[:space:]].*$//' -i cabal.config
+             ;;
+     8.0.1) curl -L https://www.stackage.org/lts-7.14/cabal.config > cabal.config
+            sed 's/[[:space:]]*vinyl[[:space:]].*$//' -i cabal.config
+            ;;
+   esac
  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
  - cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > installplan.txt
  - sed -i -e '1,/^Resolving /d' installplan.txt; cat installplan.txt

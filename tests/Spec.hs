@@ -15,13 +15,13 @@ data TooBig = TooBig
 data Even = Even
 data Not7 = Not7
 
-fun1 :: TooBig ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun1 :: (TooBig ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun1 x = if x < 10 then Right () else Left (Col (pure TooBig))
 
-fun2 :: Even ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun2 :: (Even ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun2 x = if odd x then Right () else Left (Col (pure Even))
 
-fun3 :: Not7 ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun3 :: (Not7 ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun3 x = if x == 7 then Right () else Left (Col (pure Not7))
 
 test1and2 :: (TooBig ∈ rs, Even ∈ rs) => Int -> Either (CoRec Identity rs) ()
