@@ -11,10 +11,12 @@ import Data.Vinyl.TH
 import Test.Hspec
 import Test.ShouldNotTypecheck
 
+-- Custom error types
 data TooBig = TooBig
 data Even = Even
 data Not7 = Not7
 
+-- Functions that might return an error value
 fun1 :: (TooBig ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun1 x = if x < 10 then Right () else Left (Col (pure TooBig))
 
@@ -24,15 +26,20 @@ fun2 x = if odd x then Right () else Left (Col (pure Even))
 fun3 :: (Not7 ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun3 x = if x == 7 then Right () else Left (Col (pure Not7))
 
+-- Helper for sequencing values that can error
 test1and2 :: (TooBig ∈ rs, Even ∈ rs) => Int -> Either (CoRec Identity rs) ()
 test1and2 x = fun1 x >> fun2 x
 
+-- Giving a name to a sequence
 test1 :: (TooBig ∈ rs, Even ∈ rs) => Either (CoRec Identity rs) ()
 test1 = test1and2 12
 
 test2 :: (TooBig ∈ rs, Even ∈ rs) => Either (CoRec Identity rs) ()
 test2 = test1and2 7
 
+-- This empty declaration splice finishes the previous "declaration
+-- group" in GHC parlance. This lets us reify the Names 'test1' and
+-- 'test2' in TH below.
 return []
 
 main :: IO ()
