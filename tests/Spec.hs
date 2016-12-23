@@ -1,11 +1,39 @@
-{-# LANGUAGE DataKinds, ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, QuasiQuotes,
+             ScopedTypeVariables, TemplateHaskell, TypeOperators #-}
 {-# OPTIONS_GHC -fdefer-type-errors #-}
 import Control.Monad ((>=>))
 import Data.Proxy
 import Data.Vinyl
 import Data.Vinyl.CoRec
+import Data.Vinyl.Functor (Identity(..))
+
+import Data.Vinyl.TH
 import Test.Hspec
 import Test.ShouldNotTypecheck
+
+data TooBig = TooBig
+data Even = Even
+data Not7 = Not7
+
+fun1 :: TooBig ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun1 x = if x < 10 then Right () else Left (Col (pure TooBig))
+
+fun2 :: Even ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun2 x = if odd x then Right () else Left (Col (pure Even))
+
+fun3 :: Not7 ∈ rs => Int -> Either (CoRec Identity rs) ()
+fun3 x = if x == 7 then Right () else Left (Col (pure Not7))
+
+test1and2 :: (TooBig ∈ rs, Even ∈ rs) => Int -> Either (CoRec Identity rs) ()
+test1and2 x = fun1 x >> fun2 x
+
+test1 :: (TooBig ∈ rs, Even ∈ rs) => Either (CoRec Identity rs) ()
+test1 = test1and2 12
+
+test2 :: (TooBig ∈ rs, Even ∈ rs) => Either (CoRec Identity rs) ()
+test2 = test1and2 7
+
+return []
 
 main :: IO ()
 main = hspec $ do
@@ -29,3 +57,23 @@ main = hspec $ do
       let handlers = match1 (H (\(u :: ()) -> "unit"))
                      >=> match1 (H (\(b :: Bool) -> "bool "++show b))
       in shouldNotTypecheck (either id matchNil (handlers x))
+    describe "Can have ambiguous row types fixed with TH" $ do
+      it "Can still pattern match" $
+        let handlers = match1 (H (\TooBig -> "too big"))
+                       >=> match1 (H (\Even -> "too even"))
+        in either (either id matchNil . handlers)
+                  (const "cool")
+                  [deal|test1|]  `shouldBe` "too big"
+      it "Supports total pattern matching" $
+        let handlers = match1 (H (\TooBig -> "too big"))
+                       >=> match1 (H (\Even -> "too even"))
+        in either (either id matchNil . handlers)
+                  (const "cool")
+                  [deal|test2|]  `shouldBe` "cool"
+      it "Fixes types as small as possible" $
+        let handlers = match1 (H (\TooBig -> "too big"))
+                       >=> match1 (H (\Even -> "too even"))
+                       >=> match1 (H (\Not7 -> "pshah"))
+        in shouldNotTypecheck (either (either id matchNil . handlers)
+                                      (const "cool")
+                                      [deal|test2|])
