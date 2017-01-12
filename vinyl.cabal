@@ -30,11 +30,9 @@ library
                      , Data.Vinyl.TypeLevel
                      , Data.Vinyl.Functor
                      , Data.Vinyl.Notation
-                     , Data.Vinyl.TH
                      , Data.Vinyl.Tutorial.Overview
   build-depends:       base >=4.7 && <= 5,
-                       ghc-prim,
-                       template-haskell >= 2.10 && < 2.13
+                       ghc-prim
   default-language:    Haskell2010
   ghc-options: -fwarn-dodgy-exports -fwarn-dodgy-imports -fwarn-unused-matches -fwarn-unused-imports -fwarn-unused-binds -fwarn-incomplete-record-updates -fwarn-missing-signatures -fwarn-name-shadowing -fwarn-orphans -fwarn-overlapping-patterns -fwarn-tabs -fwarn-type-defaults
 
@@ -78,6 +76,5 @@ test-suite spec
                      , vinyl
                      , hspec >= 2.2.4 && < 2.3
                      , should-not-typecheck >= 2.0 && < 2.2
-
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

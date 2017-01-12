@@ -34,13 +34,6 @@ foldCoRec f (Col x) = f x
 -- | A Field of a 'Rec' 'Identity' is a 'CoRec' 'Identity'.
 type Field = CoRec Identity
 
--- -- | Helper to build a 'Show'-able 'CoRec'
--- col :: (Show a, a ∈ ts) => a -> CoRec (Dict Show) ts
--- col = Col . Dict
-
--- instance Show (CoRec (Dict Show) ts) where
---   show (Col (Dict x)) = "Col "++show x
-
 -- | A function type constructor that takes its arguments in the
 -- reverse order.
 newtype Op b a = Op { runOp :: a -> b }
@@ -60,14 +53,6 @@ instance forall ts. (RecAll Maybe ts Eq, RecApplicative ts)
       f :: forall a. (Dict Eq :. Maybe) a -> Maybe a -> Const Bool a
       f (Compose (Dict a)) b = Const $ a == b
       toRec = reifyConstraint (Proxy :: Proxy Eq) . coRecToRec'
-
--- -- | Remove a 'Dict' wrapper from a value.
--- dictId :: Dict c a -> Identity a
--- dictId (Dict x) = Identity x
-
--- -- | Helper to build a @Dict Show@
--- showDict :: Show a => a -> Dict Show a
--- showDict = Dict
 
 -- | We can inject a a 'CoRec' into a 'Rec' where every field of the
 -- 'Rec' is 'Nothing' except for the one whose type corresponds to the
