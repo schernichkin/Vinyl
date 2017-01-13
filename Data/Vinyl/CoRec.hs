@@ -1,8 +1,8 @@
 {-# LANGUAGE BangPatterns, CPP, ConstraintKinds, DataKinds, EmptyCase,
              FlexibleContexts, FlexibleInstances, GADTs,
-             KindSignatures, MultiParamTypeClasses, RankNTypes,
-             ScopedTypeVariables, TypeOperators, UndecidableInstances
-             #-}
+             KindSignatures, MultiParamTypeClasses, PolyKinds,
+             RankNTypes, ScopedTypeVariables, TypeOperators,
+             UndecidableInstances #-}
 -- | Co-records: open sum types.
 --
 -- Consider a record with three fields @A@, @B@, and @C@. A record is
@@ -23,7 +23,7 @@ import Data.Kind (Constraint)
 #endif
 
 -- | Generalize algebraic sum types.
-data CoRec :: (* -> *) -> [*] -> * where
+data CoRec :: (k -> *) -> [k] -> * where
   Col :: RElem a ts (RIndex a ts) => !(f a) -> CoRec f ts
 
 -- | Apply a function to a 'CoRec' value. The function must accept
@@ -142,7 +142,7 @@ onField p f x = getIdentity (onCoRec p f x)
 
 -- | Build a record whose elements are derived solely from a
 -- list of constraint constructors satisfied by each.
-reifyDicts :: forall cs f proxy ts. (AllAllSat cs ts, RecApplicative ts)
+reifyDicts :: forall cs f proxy (ts :: [*]). (AllAllSat cs ts, RecApplicative ts)
            => proxy cs -> (forall a. AllSatisfied cs a => f a) -> Rec f ts
 reifyDicts _ f = go (rpure Nothing)
   where go :: AllAllSat cs ts' => Rec Maybe ts' -> Rec f ts'
