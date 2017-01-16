@@ -24,12 +24,12 @@ import Data.Kind (Constraint)
 
 -- | Generalize algebraic sum types.
 data CoRec :: (k -> *) -> [k] -> * where
-  Col :: RElem a ts (RIndex a ts) => !(f a) -> CoRec f ts
+  CoRec :: RElem a ts (RIndex a ts) => !(f a) -> CoRec f ts
 
 -- | Apply a function to a 'CoRec' value. The function must accept
 -- /any/ variant.
 foldCoRec :: (forall a. RElem a ts (RIndex a ts) => f a -> b) -> CoRec f ts -> b
-foldCoRec f (Col x) = f x
+foldCoRec f (CoRec x) = f x
 
 -- | A Field of a 'Rec' 'Identity' is a 'CoRec' 'Identity'.
 type Field = CoRec Identity
@@ -40,7 +40,7 @@ newtype Op b a = Op { runOp :: a -> b }
 
 instance forall ts. (AllConstrained Show ts, RecApplicative ts)
   => Show (CoRec Identity ts) where
-  show (Col (Identity x)) = "(Col "++show' x++")"
+  show (CoRec (Identity x)) = "(Col "++show' x++")"
     where shower :: Rec (Op String) ts
           shower = rpureConstrained (Proxy::Proxy Show) (Op show)
           show' = runOp (rget Proxy shower)
@@ -58,7 +58,7 @@ instance forall ts. (RecAll Maybe ts Eq, RecApplicative ts)
 -- 'Rec' is 'Nothing' except for the one whose type corresponds to the
 -- type of the given 'CoRec' variant.
 coRecToRec :: RecApplicative ts => CoRec f ts -> Rec (Maybe :. f) ts
-coRecToRec (Col x) = rput (Compose $ Just x) (rpure (Compose Nothing))
+coRecToRec (CoRec x) = rput (Compose $ Just x) (rpure (Compose Nothing))
 
 -- | Shorthand for applying 'coRecToRec' with common functors.
 coRecToRec' :: RecApplicative ts => CoRec Identity ts -> Rec Maybe ts
@@ -74,34 +74,34 @@ class FoldRec ss ts where
 instance FoldRec ss '[] where foldRec _ z _ = z
 
 instance (t ∈ ss, FoldRec ss ts) => FoldRec ss (t ': ts) where
-  foldRec f z (x :& xs) = foldRec f (f z (Col x)) xs
+  foldRec f z (x :& xs) = foldRec f (f z (CoRec x)) xs
 
 -- | Apply a natural transformation to a variant.
 coRecMap :: (forall x. f x -> g x) -> CoRec f ts -> CoRec g ts
-coRecMap nt (Col x) = Col (nt x)
+coRecMap nt (CoRec x) = CoRec (nt x)
 
 -- | This can be used to pull effects out of a 'CoRec'.
 coRecTraverse :: Functor h
               => (forall x. f x -> h (g x)) -> CoRec f ts -> h (CoRec g ts)
-coRecTraverse f (Col x) = fmap Col (f x)
+coRecTraverse f (CoRec x) = fmap CoRec (f x)
 
 -- | Fold a field selection function over a non-empty 'Rec'.
 foldRec1 :: FoldRec (t ': ts) ts
          => (CoRec f (t ': ts) -> CoRec f (t ': ts) -> CoRec f (t ': ts))
          -> Rec f (t ': ts)
          -> CoRec f (t ': ts)
-foldRec1 f (x :& xs) = foldRec f (Col x) xs
+foldRec1 f (x :& xs) = foldRec f (CoRec x) xs
 
 -- | Similar to 'Data.Monoid.First': find the first field that is not
 -- 'Nothing'.
 firstField :: FoldRec ts ts
            => Rec (Maybe :. f) ts -> Maybe (CoRec f ts)
 firstField RNil = Nothing
-firstField v@(x :& _) = coRecTraverse getCompose $ foldRec aux (Col x) v
+firstField v@(x :& _) = coRecTraverse getCompose $ foldRec aux (CoRec x) v
   where aux :: CoRec (Maybe :. f) (t ': ts)
             -> CoRec (Maybe :. f) (t ': ts)
             -> CoRec (Maybe :. f) (t ': ts)
-        aux c@(Col (Compose (Just _))) _ =  c
+        aux c@(CoRec (Compose (Just _))) _ =  c
         aux _ c = c
 
 -- | Similar to 'Data.Monoid.Last': find the last field that is not
@@ -109,11 +109,11 @@ firstField v@(x :& _) = coRecTraverse getCompose $ foldRec aux (Col x) v
 lastField :: FoldRec ts ts
           => Rec (Maybe :. f) ts -> Maybe (CoRec f ts)
 lastField RNil = Nothing
-lastField v@(x :& _) = coRecTraverse getCompose $ foldRec aux (Col x) v
+lastField v@(x :& _) = coRecTraverse getCompose $ foldRec aux (CoRec x) v
   where aux :: CoRec (Maybe :. f) (t ': ts)
             -> CoRec (Maybe :. f) (t ': ts)
             -> CoRec (Maybe :. f) (t ': ts)
-        aux _ c@(Col (Compose (Just _))) = c
+        aux _ c@(CoRec (Compose (Just _))) = c
         aux c _ = c
 
 -- | Apply a type class method on a 'CoRec'. The first argument is a
@@ -125,7 +125,7 @@ onCoRec :: forall (cs :: [* -> Constraint]) f ts b.
         => Proxy cs
         -> (forall a. AllSatisfied cs a => a -> b)
         -> CoRec f ts -> f b
-onCoRec p f (Col x) = fmap meth x
+onCoRec p f (CoRec x) = fmap meth x
   where meth = runOp $
                rget Proxy (reifyDicts p (Op f) :: Rec (Op b) ts)
 
@@ -154,7 +154,7 @@ reifyDicts _ f = go (rpure Nothing)
 -- | Given a proxy of type t and a 'CoRec Identity' that might be a t, try to
 -- convert the CoRec to a t.
 asA             :: (t ∈ ts, RecApplicative ts) => proxy t -> CoRec Identity ts -> Maybe t
-asA p c@(Col _) = rget p $ coRecToRec' c
+asA p c@(CoRec _) = rget p $ coRecToRec' c
 
 -- | Pattern match on a CoRec by specifying handlers for each case. If the
 -- CoRec is non-empty this function is total. Note that the order of the
@@ -216,7 +216,7 @@ match1 h = fmap (fromJust . firstField . rmap (Compose . fmap Identity))
          . coRecToRec'
 
 matchNil :: CoRec f '[] -> r
-matchNil (Col x) = case x of
+matchNil (CoRec x) = case x of
 
 -- | Newtype around functions for a to b
 newtype Handler b a = H (a -> b)

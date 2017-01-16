@@ -18,18 +18,18 @@ data Not7 = Not7
 
 -- Functions that might return an error value
 fun1 :: (TooBig ∈ rs) => Int -> Either (CoRec Identity rs) ()
-fun1 x = if x < 10 then Right () else Left (Col (pure TooBig))
+fun1 x = if x < 10 then Right () else Left (CoRec (pure TooBig))
 
 fun2 :: (Even ∈ rs) => Int -> Either (CoRec Identity rs) ()
-fun2 x = if odd x then Right () else Left (Col (pure Even))
+fun2 x = if odd x then Right () else Left (CoRec (pure Even))
 
 fun3 :: (Not7 ∈ rs) => Int -> Either (CoRec Identity rs) ()
-fun3 x = if x == 7 then Right () else Left (Col (pure Not7))
+fun3 x = if x == 7 then Right () else Left (CoRec (pure Not7))
 
 spec :: SpecWith ()
 spec = do
   describe "CoRecs" $ do
-    let x = Col (pure True) :: Field '[Int,Bool,()]
+    let x = CoRec (pure True) :: Field '[Int,Bool,()]
     it "Can be cast successfully" $
       asA (Proxy :: Proxy Bool) x `shouldBe` Just True
     it "Can fail to cast" $
