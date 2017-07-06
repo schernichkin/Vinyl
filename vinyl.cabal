@@ -12,9 +12,9 @@ stability:           Experimental
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  CHANGELOG.md
-tested-with:         GHC == 7.10.3, GHC == 8.0.1
+tested-with:         GHC == 7.10.3, GHC == 8.0.2
 
-description: Extensible records for Haskell with lenses using modern GHC features.
+description: Extensible records for Haskell with lenses.
 
 source-repository head
   type:     git
