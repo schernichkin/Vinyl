@@ -196,7 +196,7 @@ instance Match1 t (t ': ts) 'Z where
   match1' _ (Nothing :& xs) = Right xs
   match1' (H h) (Just x :& _) = Left (h x)
 
-instance (Match1 t ts i, RIndex t (s ': ts) ~ S i,
+instance (Match1 t ts i, RIndex t (s ': ts) ~ 'S i,
           RDelete t (s ': ts) ~ (s ': RDelete t ts))
          => Match1 t (s ': ts) ('S i) where
   match1' h (x :& xs) = (x :&) <$> match1' h xs
