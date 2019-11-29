@@ -1,5 +1,5 @@
-{-# LANGUAGE CPP, DataKinds, FlexibleContexts,
-             ScopedTypeVariables, TypeApplications, TypeOperators #-}
+{-# LANGUAGE CPP, DataKinds, FlexibleContexts, ScopedTypeVariables,
+             TypeApplications, TypeOperators #-}
 {-# OPTIONS_GHC -fdefer-type-errors #-}
 module CoRecSpec (spec) where
 import Control.Monad ((>=>))
@@ -27,7 +27,7 @@ fun3 :: (Not7 ∈ rs) => Int -> Either (CoRec Identity rs) ()
 fun3 x = if x == 7 then Right () else Left (CoRec (pure Not7))
 
 spec :: SpecWith ()
-spec = do
+spec =
   describe "CoRecs" $ do
     let x = CoRec (pure True) :: Field '[Int,Bool,()]
     it "Can be cast successfully" $

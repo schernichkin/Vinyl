@@ -38,9 +38,7 @@ import Data.Vinyl.TypeLevel
 -- the constraint solver realize that this is a decidable predicate
 -- with respect to the judgemental equality in @k@.
 class (i ~ RIndex r rs, NatToInt i)
-  => RecElem record (r :: k) (r' :: k)
-             (rs :: [k]) (rs' :: [k])
-             (i :: Nat) | r r' rs i -> rs' where
+  => RecElem record r r' rs rs' (i :: Nat) | r r' rs i -> rs' where
   -- | An opportunity for instances to generate constraints based on
   -- the functor parameter of records passed to class methods.
   type RecElemFCtx record (f :: k -> *) :: Constraint
@@ -141,7 +139,7 @@ rlens = rlensC
 -- record to the former's is evident. That is, we can either cast a larger
 -- record to a smaller one, or we may replace the values in a slice of a
 -- record.
-class is ~ RImage rs ss => RecSubset record (rs :: [k]) (ss :: [k]) is where
+class is ~ RImage rs ss => RecSubset record rs ss is where
   -- | An opportunity for instances to generate constraints based on
   -- the functor parameter of records passed to class methods.
   type RecSubsetFCtx record (f :: k -> *) :: Constraint
